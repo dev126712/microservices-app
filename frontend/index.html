@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Microservices Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status { font-weight: bold; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 10px; }
+        .online { background: #e6fffa; color: #234e52; }
+        .offline { background: #fff5f5; color: #c53030; }
+        h1 { color: #2d3748; }
+    </style>
+</head>
+<body>
+    <h1>System Visualization</h1>
+    <div class="grid">
+        <div class="card">
+            <h3>Product Service</h3>
+            <p>Port: 3000</p>
+            <div id="product-status" class="status offline">Checking...</div>
+        </div>
+
+        <div class="card">
+            <h3>Order Service</h3>
+            <p>Port: 5000</p>
+            <div id="order-status" class="status offline">Checking...</div>
+        </div>
+
+        <div class="card">
+            <h3>Notification Service</h3>
+            <p>Port: 5001</p>
+            <div id="notif-status" class="status offline">Checking...</div>
+        </div>
+    </div>
+
+    <script>
+        const SERVICES = {
+             products: 'http://localhost:3000',
+             orders: 'http://localhost:5000',
+             notifications: 'http://localhost:5001'
+        };
+        async function checkStatus(url, elementId) {
+            const el = document.getElementById(elementId);
+            try {
+                const response = await fetch(url);
+                if (response.ok || response.status === 404) { // 404 means server is alive but route is empty
+                    el.innerText = "ONLINE";
+                    el.className = "status online";
+                }
+            } catch (err) {
+                el.innerText = "OFFLINE";
+                el.className = "status offline";
+            }
+        }
+
+        // Initial check
+        checkStatus('http://localhost:3000', 'product-status');
+        checkStatus('http://localhost:5000', 'order-status');
+        checkStatus('http://localhost:5001', 'notif-status');
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+# --- IDE / OS Files ---
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# --- Docker & Local Environment ---
+.env
+.env.local
+docker-compose.override.yml
+*.log
+# Ignore the actual Postgres data folder if you mounted it locally
+pgdata/
+postgres-data/
+
+# --- Python (Order Service) ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# --- Node.js / Frontend (Product Service / Nginx) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+
+# --- Go (Notification Service) ---
+# Binaries
+bin/
+notification-service
+# Dependency directories (only if using vendor)
+vendor/
+# Test coverage
+*.out
+
+# --- Security & Terraform (If applicable later) ---
+*.pem
+*.key
+.terraform/
+terraform.tfstate*

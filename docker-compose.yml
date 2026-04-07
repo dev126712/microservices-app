@@ -1,0 +1,66 @@
+services:
+  # --- Databases & Cache ---
+  cache:
+    image: redis:7-alpine
+    networks:
+      - micro-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: orders_db
+    networks:
+      - micro-network
+
+  # --- Microservices ---
+  product-service:
+    build: ./product-service
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=cache
+    depends_on:
+      - cache
+    networks:
+      - micro-network
+
+  order-service:
+    build: ./order-service
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/orders_db
+    depends_on:
+      - db
+    networks:
+      - micro-network
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "5001:5001"
+    networks:
+      - micro-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-service
+    ports:
+      - "8080:80" # Access the UI at http://localhost:8080
+    depends_on:
+      - order-service
+      - product-service
+      - notification-service
+    networks:
+      - micro-network
+    restart: always
+
+networks:
+  micro-network:
+    driver: bridge
+
+
