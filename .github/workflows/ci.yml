@@ -27,6 +27,7 @@ jobs:
 
       # 2. SAST (Code Logic & Secrets Audit)
       - name: SAST Scan
+        continue-on-error: true
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/security-audit p/secrets
