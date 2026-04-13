@@ -20,6 +20,20 @@ The application is built using a "Polyglot" approach, selecting the best runtime
 | **Infrastructure** | Docker, Docker Compose, Nginx |
 | **Communication** | RESTful APIs (JSON), Internal Docker DNS |
 
+## ⛓️ CI/CD & DevSecOps Pipeline
+The project includes a robust automated pipeline using **GitHub Actions**, ensuring that every change is tested and secured before deployment.
+
+- **Automated Builds:** Multi-architecture Docker builds for all 4 services.
+- **SCA (Software Composition Analysis):** Uses **Trivy** to audit open-source dependencies for vulnerabilities.
+- **SAST (Static Application Security Testing):** Uses **Semgrep** to find "code smells" and hardcoded credentials.
+- **Container Hardening:** Post-build image scanning to ensure only "Zero-Critical-Vulnerability" images are pushed to Docker Hub.
+
+## 🚢 Kubernetes Migration Path
+Because the CI/CD pipeline already pushes versioned images to a public registry, this stack is ready for K8s:
+1. **Images:** Pulled from `docker.io/your-user/micro-service:latest`.
+2. **Configuration:** Environment variables are ready to be mapped to K8s `ConfigMaps`.
+3. **Resilience:** Existing retry logic handles Pod restarts and scheduling delays.
+
 ## 🌟 Key Engineering Features
 
 ### 1. Resilient Service Discovery & Self-Healing
