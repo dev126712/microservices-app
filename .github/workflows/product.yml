@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'product-service'
+      - 'product-service/**'
 
 jobs:
   build-and-secure:
