@@ -3,39 +3,75 @@ const redis = require('redis');
 const app = express();
 const PORT = 3000;
 
-// Connect to Redis using the service name defined in docker-compose
+app.use(express.json());
+
+// 1. Setup the Client
 const client = redis.createClient({
     url: `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
 });
 
-client.on('error', (err) => console.log('Redis Client Error', err));
+// 2. CONNECT ONCE: This stays at the top, outside of any routes
+client.connect()
+    .then(() => console.log("✅ Connected to Redis"))
+    .catch(err => console.error("❌ Redis Connection Error", err));
 
-app.get('/products/:id', async (req, res) => {
-    const productId = req.params.id;
-
+// GET ALL: Pulls from the 'products' hash
+app.get('/', async (req, res) => {
     try {
-        await client.connect();
-        // Check cache
-        const cachedProduct = await client.get(productId);
-        
-        if (cachedProduct) {
-            console.log("Cache Hit!");
-            await client.disconnect();
-            return res.json({ source: 'cache', data: JSON.parse(cachedProduct) });
-        }
-
-        // Simulate DB Fetch
-        console.log("Cache Miss - Fetching from DB...");
-        const product = { id: productId, name: "DevOps Tool", price: 99.99 };
-
-        // Save to Redis for 60 seconds
-        await client.setEx(productId, 60, JSON.stringify(product));
-        
-        await client.disconnect();
-        res.json({ source: 'database', data: product });
+        const data = await client.hGetAll('products');
+        const products = Object.values(data).map(p => JSON.parse(p));
+        res.json(products);
     } catch (err) {
         res.status(500).send(err.message);
     }
 });
 
-app.listen(PORT, () => console.log(`Product Service running on port ${PORT}`));
+// GET ONE: The "Cache-Aside" pattern
+app.get('/:id', async (req, res) => {
+    const productId = req.params.id;
+    try {
+        // Look in fast cache first
+        const cached = await client.get(`cache:${productId}`);
+        if (cached) return res.json({ source: 'cache', data: JSON.parse(cached) });
+
+        // If not in cache, look in main 'products' hash
+        const productData = await client.hGet('products', productId);
+        if (!productData) return res.status(404).send("Not Found");
+
+        // Save to fast cache for 60 seconds before returning
+        await client.setEx(`cache:${productId}`, 60, productData);
+        res.json({ source: 'main_store', data: JSON.parse(productData) });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+// POST: Add new product
+app.post('/', async (req, res) => {
+    const { name, price } = req.body;
+    const id = Date.now().toString();
+    const newProduct = { id, name, price };
+    try {
+        await client.hSet('products', id, JSON.stringify(newProduct));
+        res.status(201).json(newProduct);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+// PUT: Update existing product
+app.put('/:id', async (req, res) => {
+    const id = req.params.id;
+    const { name, price } = req.body;
+    try {
+        const updatedProduct = { id, name, price };
+        await client.hSet('products', id, JSON.stringify(updatedProduct));
+        // IMPORTANT: Delete the old cache so the update shows up immediately
+        await client.del(`cache:${id}`);
+        res.json(updatedProduct);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+app.listen(PORT, () => console.log(`Product Service on port ${PORT}`));

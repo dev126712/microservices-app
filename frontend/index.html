@@ -1,63 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Microservices Dashboard</title>
+    <title>Product Management</title>
     <style>
+        /* Restoring the missing CSS */
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .status { font-weight: bold; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 10px; }
-        .online { background: #e6fffa; color: #234e52; }
-        .offline { background: #fff5f5; color: #c53030; }
-        h1 { color: #2d3748; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h3, h4 { color: #2d3748; }
+        input { padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 15px; cursor: pointer; background: #4299e1; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #3182ce; }
+        #product-list div { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
-    <h1>System Visualization</h1>
-    <div class="grid">
-        <div class="card">
-            <h3>Product Service</h3>
-            <p>Port: 3000</p>
-            <div id="product-status" class="status offline">Checking...</div>
-        </div>
-
-        <div class="card">
-            <h3>Order Service</h3>
-            <p>Port: 5000</p>
-            <div id="order-status" class="status offline">Checking...</div>
-        </div>
-
-        <div class="card">
-            <h3>Notification Service</h3>
-            <p>Port: 5001</p>
-            <div id="notif-status" class="status offline">Checking...</div>
-        </div>
+    <div class="card">
+        <h3>Product Management</h3>
+        <div id="product-list"></div>
+        <hr>
+        <h4>Add/Modify Product</h4>
+        <input type="hidden" id="prod-id">
+        <input type="text" id="prod-name" placeholder="Product Name">
+        <input type="number" id="prod-price" placeholder="Price">
+        <button onclick="saveProduct()">Save Product</button>
     </div>
 
     <script>
-        const SERVICES = {
-             products: 'http://localhost:3000',
-             orders: 'http://localhost:5000',
-             notifications: 'http://localhost:5001'
-        };
-        async function checkStatus(url, elementId) {
-            const el = document.getElementById(elementId);
+        async function placeOrder(productId) {
+    const response = await fetch('/api/orders/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId })
+    });
+    const result = await response.json();
+    alert(result.message || result.error);
+}
+        // Added trailing slashes to routes to prevent 404s
+        async function loadProducts() {
             try {
-                const response = await fetch(url);
-                if (response.ok || response.status === 404) { // 404 means server is alive but route is empty
-                    el.innerText = "ONLINE";
-                    el.className = "status online";
-                }
+                const res = await fetch('/api/products/'); 
+                const products = await res.json();
+                const list = document.getElementById('product-list');
+                list.innerHTML = products.map(p => `
+                    <div>
+                        <span><strong>${p.name}</strong> - $${p.price}</span>
+                        <div>
+                            <button onclick="fillForm('${p.id}', '${p.name}', ${p.price})">Edit</button>
+                            <button onclick="placeOrder('${p.id}')" style="background: #48bb78">Buy</button>
+                            <button style="background:#f56565" onclick="deleteProduct('${p.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (err) {
-                el.innerText = "OFFLINE";
-                el.className = "status offline";
+                console.error("Failed to load products:", err);
             }
         }
 
-        // Initial check
-        checkStatus('http://localhost:3000', 'product-status');
-        checkStatus('http://localhost:5000', 'order-status');
-        checkStatus('http://localhost:5001', 'notif-status');
+        async function saveProduct() {
+            const id = document.getElementById('prod-id').value;
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/products/${id}/` : '/api/products/';
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, price })
+            });
+            
+            // Clear form
+            document.getElementById('prod-id').value = '';
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            loadProducts();
+        }
+
+        function fillForm(id, name, price) {
+            document.getElementById('prod-id').value = id;
+            document.getElementById('prod-name').value = name;
+            document.getElementById('prod-price').value = price;
+        }
+
+        async function deleteProduct(id) {
+            await fetch(`/api/products/${id}/`, { method: 'DELETE' });
+            loadProducts();
+        }
+        
+        loadProducts();
     </script>
 </body>
 </html>

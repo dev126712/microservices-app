@@ -1,5 +1,4 @@
-package main
-
+package main // <--- This line MUST be the first line
 
 import (
 	"encoding/json"
@@ -8,31 +7,31 @@ import (
 	"net/http"
 )
 
-// Define the structure of the incoming request
 type NotificationRequest struct {
-	OrderID int    `json:"order_id"`
-	Msg     string `json:"msg"`
+	OrderID     int    `json:"order_id"`
+	ProductName string `json:"product_name"`
+	Msg         string `json:"msg"`
 }
 
 func notifyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Invalid method", 405)
 		return
 	}
 
 	var req NotificationRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Bad request", 400)
 		return
 	}
 
-	// Logic: In a real app, this would send an Email or SMS
-	fmt.Printf(">>> [NOTIFY] Order #%d processed: %s\n", req.OrderID, req.Msg)
+	fmt.Printf("\n--- [INCOMING NOTIFICATION] ---\n")
+	fmt.Printf("Order #%d | Item: %s\n", req.OrderID, req.ProductName)
+	fmt.Printf("Status: %s\n", req.Msg)
+	fmt.Printf("-------------------------------\n")
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "Go Notification Sent"})
+	json.NewEncoder(w).Encode(map[string]string{"status": "processed"})
 }
 
 func main() {

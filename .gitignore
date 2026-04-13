@@ -39,7 +39,6 @@ build/
 # --- Go (Notification Service) ---
 # Binaries
 bin/
-notification-service
 # Dependency directories (only if using vendor)
 vendor/
 # Test coverage
