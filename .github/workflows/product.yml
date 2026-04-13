@@ -3,6 +3,8 @@ name: Product
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'product-service'
 
 jobs:
   build-and-secure:
