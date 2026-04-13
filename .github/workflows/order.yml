@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'order-service'
+      - 'order-service/**'
 
 jobs:
   build-and-secure:
