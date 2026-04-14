@@ -3,6 +3,17 @@
 A production-grade, distributed system demonstrating high-availability patterns, cross-service communication, and multi-layered caching. This project serves as a comprehensive showcase of **Cloud Architecture**, **DevOps Engineering**, and **Backend System Design**.
 
 ![alt text](https://github.com/dev126712/microservices-app/blob/2f4cb46a52652ce43d147209045021f42ad8cb9f/Untitled%20Diagram.drawio%20(5).png)
+
+|----|----|----|
+||||
+Service|Initiates Talk To...|Purpose|
+Frontend| (Nginx),Order Service & Product Service| To fetch data to show the User.|
+Order| Service,Product Service|To verify an item exists before buying.|
+Order| Service,Notification Service|To trigger the success message printout.|
+Order| Service,PostgreSQL|To save the transaction permanently.|
+Product| Service,Redis| To get or save product details quickly.|
+
+
 ## 🏗 System Architecture
 
 The application is built using a "Polyglot" approach, selecting the best runtime for each specific task. All services are containerized and orchestrated via a unified network.
