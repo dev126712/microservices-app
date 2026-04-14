@@ -2,7 +2,7 @@
 
 A production-grade, distributed system demonstrating high-availability patterns, cross-service communication, and multi-layered caching. This project serves as a comprehensive showcase of **Cloud Architecture**, **DevOps Engineering**, and **Backend System Design**.
 
-![alt text](https://github.com/dev126712/microservices-app/blob/450a83093beb9173a8aa460632fce6afec18f772/5efba4cc-a595-4b02-b8c1-a4c6c8af27d5.png)
+![alt text](https://github.com/dev126712/microservices-app/blob/3c9ec97e168b62fd505765138587ff7a133e0ce0/Untitled%20Diagram.drawio%20(4).png)
 ## 🏗 System Architecture
 
 The application is built using a "Polyglot" approach, selecting the best runtime for each specific task. All services are containerized and orchestrated via a unified network.
