@@ -18,7 +18,14 @@ The application is built using a **Polyglot** approach, selecting the best runti
 | **Order Service** | PostgreSQL | Acts as the sole owner of transactional order history. |
 | **Product Service** | Redis | Manages inventory using a **Cache-Aside pattern** for high-speed access. |
 
+## 🛡 DevSecOps & CI/CD Pipeline
 
+Each service (Product, Order, Notification, and Frontend) is managed by an independent **GitHub Actions** workflow that enforces a "Security-First" deployment strategy:
+
+- **SCA (Software Composition Analysis):** Uses **Trivy** to scan the filesystem for vulnerable open-source dependencies.
+- **SAST (Static Application Security Testing):** Uses **Semgrep** to audit code for logic errors, "code smells," and hardcoded credentials.
+- **Container Hardening:** Every Docker image undergoes a post-build scan. The pipeline is configured to fail (`exit-code: 1`) if **CRITICAL** vulnerabilities are detected in the OS layer.
+- **Automated Versioning:** Images are pushed to Docker Hub with both a `latest` tag and a unique `SHA` tag for immutable deployments.
 
 ## 🛠 Tech Stack
 
