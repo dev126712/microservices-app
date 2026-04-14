@@ -5,7 +5,6 @@ A production-grade, distributed system demonstrating high-availability patterns,
 ![alt text](https://github.com/dev126712/microservices-app/blob/2f4cb46a52652ce43d147209045021f42ad8cb9f/Untitled%20Diagram.drawio%20(5).png)
 
 |----|----|----|
-||||
 Service|Initiates Talk To...|Purpose|
 Frontend| (Nginx),Order Service & Product Service| To fetch data to show the User.|
 Order| Service,Product Service|To verify an item exists before buying.|
