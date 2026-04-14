@@ -31,6 +31,12 @@ services:
       - cache
     networks:
       - micro-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   order-service:
     build: ./order-service
@@ -44,11 +50,23 @@ services:
         condition: service_healthy
     networks:
       - micro-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   notification-service:
     build: ./notification-service
     ports:
       - "5001:5001"
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
     networks:
       - micro-network
 
@@ -58,9 +76,12 @@ services:
     ports:
       - "8080:80" # Access the UI at http://localhost:8080
     depends_on:
-      - order-service
-      - product-service
-      - notification-service
+      order-service:
+       condition: service_healthy
+      product-service:
+       condition: service_healthy
+      # notification-service:
+      #  condition: service_healthy
     networks:
       - micro-network
     restart: always

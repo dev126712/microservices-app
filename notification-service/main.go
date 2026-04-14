@@ -1,4 +1,4 @@
-package main // <--- This line MUST be the first line
+package main
 
 import (
 	"encoding/json"
@@ -11,6 +11,12 @@ type NotificationRequest struct {
 	OrderID     int    `json:"order_id"`
 	ProductName string `json:"product_name"`
 	Msg         string `json:"msg"`
+}
+
+// Health check handler
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 func notifyHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +41,9 @@ func notifyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Endpoints
 	http.HandleFunc("/notify", notifyHandler)
+	http.HandleFunc("/health", healthHandler) // Added this
 
 	fmt.Println("Notification Service (Go) starting on port 5001...")
 	if err := http.ListenAndServe(":5001", nil); err != nil {

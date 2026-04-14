@@ -18,6 +18,10 @@ class Order(db.Model):
     product_name = db.Column(db.String(100)) # New: store the name too
     status = db.Column(db.String(20), default='PLACED')
 
+@app.route('/health')
+def health_check():
+    return "OK", 200
+
 @app.route('/order', methods=['POST'])
 def create_order():
     data = request.json
@@ -54,6 +58,38 @@ def create_order():
 
     return jsonify({"message": "Order placed successfully", "order_id": new_order.id}), 201
 
+@app.route('/stats', methods=['GET'])
+def get_stats():
+    try:
+        # 1. Count orders in PostgreSQL
+        order_count = Order.query.count()
+        
+        # 2. Get product count from Redis (via Product Service)
+        # Internal Docker DNS: 'product-service' port 3000
+        prod_res = requests.get("http://product-service:3000/", timeout=2)
+        products = prod_res.json()
+        product_count = len(products)
+
+        return jsonify({
+            "postgres_orders": order_count,
+            "redis_products": product_count
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/orders', methods=['GET'])
+def get_orders():
+    try:
+        # Fetch all orders from the PostgreSQL database
+        orders = Order.query.all()
+        return jsonify([{
+            "id": o.id,
+            "product_id": o.product_id,
+            "product_name": o.product_name,
+            "status": o.status
+        } for o in orders]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context(): # <--- This must be indented (4 spaces)

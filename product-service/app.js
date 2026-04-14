@@ -15,6 +15,10 @@ client.connect()
     .then(() => console.log("✅ Connected to Redis"))
     .catch(err => console.error("❌ Redis Connection Error", err));
 
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 // GET ALL: Pulls from the 'products' hash
 app.get('/', async (req, res) => {
     try {
@@ -69,6 +73,26 @@ app.put('/:id', async (req, res) => {
         // IMPORTANT: Delete the old cache so the update shows up immediately
         await client.del(`cache:${id}`);
         res.json(updatedProduct);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+// DELETE: Remove a product
+app.delete('/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        // Remove from main store
+        const deleted = await client.hDel('products', id);
+        
+        if (deleted === 0) {
+            return res.status(404).send("Product not found");
+        }
+
+        // IMPORTANT: Also clear the fast cache for this ID
+        await client.del(`cache:${id}`);
+        
+        res.json({ message: "Product deleted successfully", id });
     } catch (err) {
         res.status(500).send(err.message);
     }

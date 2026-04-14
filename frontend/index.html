@@ -3,17 +3,30 @@
 <head>
     <title>Product Management</title>
     <style>
-        /* Restoring the missing CSS */
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        .stats-card { background: #2d3748; color: white; display: flex; justify-content: space-around; margin-bottom: 20px; }
         h3, h4 { color: #2d3748; }
+        .stats-card h4 { color: #a0aec0; margin: 5px 0; }
         input { padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
         button { padding: 8px 15px; cursor: pointer; background: #4299e1; color: white; border: none; border-radius: 4px; }
         button:hover { background: #3182ce; }
-        #product-list div { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        #product-list div, #order-list div { padding: 10px; border-bottom: 1px solid #eee; }
+        #product-list div { display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
+    <div class="card stats-card">
+        <div style="text-align: center;">
+            <h4>Redis Products</h4>
+            <span id="stat-redis" style="font-size: 1.5em; font-weight: bold;">0</span>
+        </div>
+        <div style="text-align: center;">
+            <h4>Postgres Orders</h4>
+            <span id="stat-postgres" style="font-size: 1.5em; font-weight: bold;">0</span>
+        </div>
+    </div>
+
     <div class="card">
         <h3>Product Management</h3>
         <div id="product-list"></div>
@@ -25,58 +38,84 @@
         <button onclick="saveProduct()">Save Product</button>
     </div>
 
+    <div class="card" style="margin-top: 20px;">
+        <h3>Order History</h3>
+        <div id="order-list"></div>
+        <button onclick="loadOrders()" style="background: #718096; margin-top: 10px;">Refresh History</button>
+    </div>
+
     <script>
-        async function placeOrder(productId) {
-    const response = await fetch('/api/orders/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: productId })
-    });
-    const result = await response.json();
-    alert(result.message || result.error);
-}
-        // Added trailing slashes to routes to prevent 404s
-        async function loadProducts() {
+        // DASHBOARD LOGIC
+        async function updateDashboard() {
             try {
-                const res = await fetch('/api/products/'); 
-                const products = await res.json();
-                const list = document.getElementById('product-list');
-                list.innerHTML = products.map(p => `
+                const res = await fetch('/api/orders/stats');
+                const stats = await res.json();
+                document.getElementById('stat-redis').innerText = stats.redis_products;
+                document.getElementById('stat-postgres').innerText = stats.postgres_orders;
+            } catch (err) { console.error("Stats sync failed"); }
+        }
+
+        // PRODUCT LOGIC
+        async function loadProducts() {
+            const res = await fetch('/api/products/');
+            const products = await res.json();
+            document.getElementById('product-list').innerHTML = products.map(p => `
+                <div>
+                    <span><strong>${p.name}</strong> - $${p.price}</span>
                     <div>
-                        <span><strong>${p.name}</strong> - $${p.price}</span>
-                        <div>
-                            <button onclick="fillForm('${p.id}', '${p.name}', ${p.price})">Edit</button>
-                            <button onclick="placeOrder('${p.id}')" style="background: #48bb78">Buy</button>
-                            <button style="background:#f56565" onclick="deleteProduct('${p.id}')">Delete</button>
-                        </div>
+                        <button onclick="fillForm('${p.id}', '${p.name}', ${p.price})">Edit</button>
+                        <button onclick="placeOrder('${p.id}')" style="background: #48bb78">Buy</button>
+                        <button style="background:#f56565" onclick="deleteProduct('${p.id}')">Delete</button>
                     </div>
-                `).join('');
-            } catch (err) {
-                console.error("Failed to load products:", err);
-            }
+                </div>
+            `).join('');
         }
 
         async function saveProduct() {
             const id = document.getElementById('prod-id').value;
             const name = document.getElementById('prod-name').value;
             const price = document.getElementById('prod-price').value;
-            
-            const method = id ? 'PUT' : 'POST';
             const url = id ? `/api/products/${id}/` : '/api/products/';
-
             await fetch(url, {
-                method: method,
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, price })
             });
-            
-            // Clear form
             document.getElementById('prod-id').value = '';
             document.getElementById('prod-name').value = '';
             document.getElementById('prod-price').value = '';
             loadProducts();
+            updateDashboard();
         }
 
+        // ORDER LOGIC
+        async function placeOrder(productId) {
+            const res = await fetch('/api/orders/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            });
+            const result = await res.json();
+            alert(result.message);
+            loadOrders();
+            updateDashboard();
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/orders/orders');
+                const orders = await res.json();
+                const list = document.getElementById('order-list');
+                list.innerHTML = orders.length === 0 ? "<p>No orders yet.</p>" : orders.map(o => `
+                    <div style="display:flex; justify-content:space-between">
+                        <span><strong>Order #${o.id}</strong>: ${o.product_name}</span>
+                        <span style="color: #48bb78; font-weight: bold;">${o.status}</span>
+                    </div>
+                `).join('');
+            } catch (err) { console.error("Order load failed"); }
+        }
+
+        // UTILS
         function fillForm(id, name, price) {
             document.getElementById('prod-id').value = id;
             document.getElementById('prod-name').value = name;
@@ -86,9 +125,14 @@
         async function deleteProduct(id) {
             await fetch(`/api/products/${id}/`, { method: 'DELETE' });
             loadProducts();
+            updateDashboard();
         }
-        
+
+        // INITIAL LOAD
         loadProducts();
+        loadOrders();
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
     </script>
 </body>
 </html>

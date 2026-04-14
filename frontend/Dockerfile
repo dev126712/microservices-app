@@ -1,8 +1,11 @@
 FROM nginx:alpine
-# Everything MUST be on one line
+
+# Install curl for health check support
+
 COPY . /usr/share/nginx/html/ 
-# Copy the config
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+# Add healthcheck for Nginx itself
+
+
 EXPOSE 80
-
-
