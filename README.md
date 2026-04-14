@@ -2,7 +2,7 @@
 
 A production-grade, distributed system demonstrating high-availability patterns, cross-service communication, and multi-layered caching.
 
-![System Architecture](https://github.com/dev126712/microservices-app/blob/9f7134cd579ed49998ed18b9332e895a688eecbd/Untitled%20Diagram.drawio%20(5).png)
+![System Architecture](https://github.com/dev126712/microservices-app/blob/e82b161ba4cf18907632932754d6df223b8bbb36/Untitled%20Diagram.drawio%20(6).png)
 
 ## 🏗 System Architecture
 
