@@ -45,6 +45,8 @@ services:
       - "5000:5000"
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/orders_db
+      - PRODUCT_SERVICE_URL=http://product-service:3000
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5001
     depends_on:
       db:
         condition: service_healthy

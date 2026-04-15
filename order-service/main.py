@@ -9,6 +9,8 @@ app = Flask(__name__)
 
 # Config
 DB_URL = os.getenv('DATABASE_URL', 'postgresql://user:pass@db:5432/orders_db')
+PRODUCT_SERVICE_URL = os.getenv('PRODUCT_SERVICE_URL', 'http://product-service:3000')
+NOTIFICATION_SERVICE_URL = os.getenv('NOTIFICATION_SERVICE_URL', 'http://notification-service:5001')
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 db = SQLAlchemy(app)
 
@@ -30,7 +32,7 @@ def create_order():
     # 1. Step Up: Verify product exists by calling Product Service
     try:
         # Internal Docker DNS: 'product-service' port 3000
-        response = requests.get(f"http://product-service:3000/{p_id}", timeout=2)
+        response = requests.get(f"{PRODUCT_SERVICE_URL}/{p_id}", timeout=2)
         if response.status_code != 200:
             return jsonify({"error": "Product not found in inventory"}), 404
         
@@ -52,7 +54,7 @@ def create_order():
     }
 
     try:
-        requests.post("http://notification-service:5001/notify", json=notification_payload, timeout=2)
+        requests.post(f"{NOTIFICATION_SERVICE_URL}/notify", json=notification_payload, timeout=2)
     except:
         print(">>> Warning: Notification service is down, but order was saved.")
 
@@ -66,7 +68,7 @@ def get_stats():
         
         # 2. Get product count from Redis (via Product Service)
         # Internal Docker DNS: 'product-service' port 3000
-        prod_res = requests.get("http://product-service:3000/", timeout=2)
+        prod_res = requests.get(f"{PRODUCT_SERVICE_URL}/", timeout=2)
         products = prod_res.json()
         product_count = len(products)
 
