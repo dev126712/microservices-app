@@ -8,4 +8,4 @@ COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 # Add healthcheck for Nginx itself
 
 
-EXPOSE 80
+EXPOSE 8080
