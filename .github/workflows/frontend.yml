@@ -56,3 +56,25 @@ jobs:
           format: 'table'
           exit-code: '1' # This fails the build if CRITICAL bugs are found in the OS
           severity: 'CRITICAL'
+
+      - name: Update Manifest Repository
+        env:
+          MANIFEST_REPO: "dev126712/microservice-charts-deployment"
+          PAT_TOKEN: ${{ secrets.MANIFEST_REPO_PAT }}
+        run: |
+          # 1. Clone the manifest repo
+          git config --global url."https://x-access-token:${{ env.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git clone https://x-access-token:${{ env.PAT_TOKEN }}@github.com/${{ env.MANIFEST_REPO }}.git manifest-repo
+          ls -la
+          cd manifest-repo
+          
+          # 2. Update the tag in the correct directory
+          # Using yq to target the backend object within the dev values file
+          yq -i '.image.tag = "${{ github.sha }}"' ./frontend/values.yaml
+          
+          # 3. Commit and Push
+          git config user.email ${{ secrets.GIT_EMAIL }}
+          git config user.name ${{ secrets.GIT_USERNAME }}
+          git add .
+          git commit -m "chore(dev): update backend image to ${{ github.sha }} [skip ci]"
+          git push origin main
