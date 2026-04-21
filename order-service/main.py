@@ -7,6 +7,7 @@ from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 
+
 # Config
 DB_URL = os.getenv('DATABASE_URL', 'postgresql://user:pass@db:5432/orders_db')
 PRODUCT_SERVICE_URL = os.getenv('PRODUCT_SERVICE_URL', 'http://product-service:3000')
