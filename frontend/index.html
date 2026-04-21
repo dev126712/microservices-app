@@ -91,7 +91,7 @@
 
         // ORDER LOGIC
         async function placeOrder(productId) {
-            const res = await fetch('/api/orders/order', {
+            const res = await fetch('/api/orders/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ product_id: productId })
@@ -104,7 +104,7 @@
 
         async function loadOrders() {
             try {
-                const res = await fetch('/api/orders');
+                const res = await fetch('/api/orders/');
                 const orders = await res.json();
                 const list = document.getElementById('order-list');
                 list.innerHTML = orders.length === 0 ? "<p>No orders yet.</p>" : orders.map(o => `
