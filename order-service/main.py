@@ -23,7 +23,16 @@ class Order(db.Model):
 
 @app.route('/health')
 def health_check():
-    return "OK", 200
+    try:
+        # Perform a simple query to verify DB connectivity
+        db.session.execute('SELECT 1')
+        return jsonify({"status": "healthy", "database": "connected"}), 200
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "reason": str(e)}), 500
+
+@app.route('/')
+def index():
+    return "Order Service Online", 200
 
 @app.route('/order', methods=['POST'])
 def create_order():
@@ -61,7 +70,7 @@ def create_order():
 
     return jsonify({"message": "Order placed successfully", "order_id": new_order.id}), 201
 
-@app.route('/stats', methods=['GET'])
+@app.route('/api/orders/stats', methods=['GET'])
 def get_stats():
     try:
         # 1. Count orders in PostgreSQL
@@ -80,7 +89,7 @@ def get_stats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/orders', methods=['GET'])
+@app.route('/api/orders', methods=['GET'])
 def get_orders():
     try:
         # Fetch all orders from the PostgreSQL database
