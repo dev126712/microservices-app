@@ -24,11 +24,10 @@ class Order(db.Model):
 @app.route('/health')
 def health_check():
     try:
-        # Perform a simple query to verify DB connectivity
         db.session.execute('SELECT 1')
-        return jsonify({"status": "healthy", "database": "connected"}), 200
-    except Exception as e:
-        return jsonify({"status": "unhealthy", "reason": str(e)}), 500
+        return "OK", 200
+    except:
+        return "Database not ready", 503
 
 @app.route('/')
 def index():
