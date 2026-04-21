@@ -5,6 +5,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
+
 // 1. Setup the Client
 const client = redis.createClient({
     url: `redis://${process.env.REDIS_HOST || 'localhost'}:6379`
