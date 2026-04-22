@@ -33,7 +33,7 @@ def health_check():
 def index():
     return "Order Service Online", 200
 
-@app.route('/order', methods=['POST'])
+@app.route('/api/orders/', methods=['POST'], strict_slashes=False)
 def create_order():
     data = request.json
     p_id = data.get('product_id')
@@ -88,7 +88,7 @@ def get_stats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/orders', methods=['GET'])
+@app.route('/api/orders', methods=['GET'], strict_slashes=False)
 def get_orders():
     try:
         # Fetch all orders from the PostgreSQL database
