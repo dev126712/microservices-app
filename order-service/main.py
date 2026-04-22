@@ -71,7 +71,7 @@ def create_order():
 
     return jsonify({"message": "Order placed successfully", "order_id": new_order.id}), 201
 
-@app.route('/api/orders/stats/', methods=['GET'])
+@app.route('/api/orders/stats', methods=['GET'], strict_slashes=False)
 def get_stats():
     try:
         # 1. Count orders in PostgreSQL
