@@ -4,6 +4,7 @@ import time
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
+from sqlalchemy import text
 
 app = Flask(__name__)
 
@@ -24,9 +25,10 @@ class Order(db.Model):
 @app.route('/health')
 def health_check():
     try:
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1')) # Wrap the string in text()
         return "OK", 200
-    except:
+    except Exception as e:
+        print(f"Health check failed: {e}") # Print the real error to your logs
         return "Database not ready", 503
 
 @app.route('/')
@@ -69,7 +71,7 @@ def create_order():
 
     return jsonify({"message": "Order placed successfully", "order_id": new_order.id}), 201
 
-@app.route('/api/orders/stats', methods=['GET'])
+@app.route('/api/orders/stats/', methods=['GET'])
 def get_stats():
     try:
         # 1. Count orders in PostgreSQL
@@ -88,7 +90,7 @@ def get_stats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/orders', methods=['GET'], strict_slashes=False)
+@app.route('/api/orders/', methods=['GET'], strict_slashes=False)
 def get_orders():
     try:
         # Fetch all orders from the PostgreSQL database
