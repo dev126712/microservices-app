@@ -62,5 +62,5 @@ The system demonstrates a synchronous request-response flow across three differe
 ### Deployment
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/your-username/microservices-orchestration.git](https://github.com/your-username/microservices-orchestration.git)
-   cd microservices-orchestration
+   git clone https://github.com/dev126712/microservices-app.git
+   cd microservices-app
